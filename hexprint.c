@@ -15,9 +15,6 @@ void print_line (FILE*          stream,
 {
   unsigned char i, start, column_stop, endlen, color;
 
-  if (stop < 1)
-    return;
-
   /* We initialize i and endlen to zero. Our color begins at normal.
    * We'll be starting in particular at the file position modulo the
    * number of bytes per line (probably zero). Lastly, we stop at the
@@ -28,6 +25,12 @@ void print_line (FILE*          stream,
   endlen      = 0;
   start       = pos % BYTES_PER_LINE;
   column_stop = BYTES_PER_LINE / 2;
+
+  if (start >= stop)
+    /* If there's not gonna be any data on this line, then don't print
+     * anything.
+     */
+    return;
 
   if (column_stop > stop)
     /* If we're actually supposed to stop before the second column, then
