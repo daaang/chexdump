@@ -1,6 +1,9 @@
+#include <stdio.h>
+#include <string.h>
 #include "hexprint.h"
 
-int read_from_stdin(char* dummy_string);
+int read_file_obj(FILE* the_file,
+                  char* dummy_string);
 
 int read_one_file(char* path_to_file,
                   char* dummy_string);
@@ -16,7 +19,7 @@ int main (int argc, char* argv[ ])
   switch (argc)
   {
     case 1:
-      return read_from_stdin(dummy_string);
+      return read_file_obj(stdin, dummy_string);
 
     case 2:
       return read_one_file(argv[1], dummy_string);
@@ -26,34 +29,57 @@ int main (int argc, char* argv[ ])
   }
 }
 
-int read_from_stdin(char* dummy_string)
+int read_file_obj(FILE* the_file,
+                  char* dummy_string)
 {
+  unsigned char bytes [BYTES_PER_LINE];
+  size_t        linelen, bytesize;
+  unsigned int  bytes_read;
+
+  /* One byte per, uh, byte. */
+  bytesize    = 1;
+
+  /* So far, we have read zero (0) bytes. */
+  bytes_read  = 0;
+
+  while (!feof(the_file))
+  {
+    /* Read up to sixteen bytes. */
+    linelen     = fread(bytes, bytesize, BYTES_PER_LINE, the_file);
+
+    /* Print this line. */
+    print_line(stdout, bytes_read, bytes, linelen, dummy_string);
+
+    /* Keep track of how many bytes we've read so far. */
+    bytes_read += linelen;
+  }
+
+  /* Lastly, print the total. */
+  printf("%08x\n", bytes_read);
+
+  return 0;
 }
 
 int read_one_file(char* path_to_file,
                   char* dummy_string)
 {
-  FILE          *the_file;
-  unsigned char bytes [BYTES_PER_LINE];
-  size_t        bytes_per_line, linelen, bytesize;
-  unsigned int  total_size;
+  int   result;
+  FILE  *the_file;
 
-  bytesize        = 1;
-  bytes_per_line  = BYTES_PER_LINE;
-  the_file        = fopen(path_to_file, "rb");
-  total_size      = 0;
+  if (strcmp(path_to_file, "-") == 0)
+    /* The hyphen just means we read from stdin. */
+    return read_file_obj(stdin, dummy_string);
 
-  while (!feof(the_file))
-  {
-    linelen = fread(bytes, bytesize, bytes_per_line, the_file);
-    print_line(stdout, total_size, bytes, linelen, dummy_string);
-    total_size += linelen;
-  }
+  /* Open the file. */
+  the_file = fopen(path_to_file, "rb");
 
+  /* Dump it. */
+  result = read_file_obj(the_file, dummy_string);
+
+  /* Close it. */
   fclose(the_file);
-  printf("%08x\n", total_size);
 
-  return 0;
+  return result;
 }
 
 int read_multiple_files(int   argc,
