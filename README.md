@@ -21,4 +21,4 @@ It'd be cool if it could take command line arguments to like, display
 only a given byte range of a file, or something. Maybe I'll do that
 next.
 
-[pdfa]: examples/pdfa.png
+[pdfa]: doc/pdfa.png
