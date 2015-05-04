@@ -1,6 +1,6 @@
 PROGRAM = chexdump
 VERSION	= 1.0.0
-FILES	= main.c hexprint.c
+FILES	= src/main.c src/hexprint.c
 OBJS	= $(FILES:.c=.o)
 CFLAGS	= -O2 -pipe
 LDFLAGS	= 
