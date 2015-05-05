@@ -14,6 +14,8 @@ extern int optind;
  * Read file object
  *
  * the_file - pointer to the FILE object (should be mode "rb")
+ * length   - how many bytes to read from the file
+ * offset   - where to start in the file
  *
  * This reads the FILE pointer you give it and outputs to stdout.
  */
@@ -25,6 +27,8 @@ int read_file_obj (FILE*    the_file,
  * Read one file
  *
  * path_to_file - string path to the file we want to read
+ * length       - how many bytes to read from the file
+ * offset       - where to start in the file
  *
  * This is just like reading a file object except that it opens the file
  * first and then closes it after. Rather than taking in an object, it
@@ -37,16 +41,16 @@ int read_one_file (char*    path_to_file,
 /**
  * Read multiple files
  *
- * argc - integer count of items in argv
- * argv - array (size argc) of strings; the first will be ignored
+ * argc     - integer count of items in argv
+ * argv     - array (size argc) of strings; the first will be ignored
+ * start_i  - where to start in the array of strings
+ * length   - how many bytes to read from the file
+ * offset   - where to start in the file
  *
  * This takes in a file count as well as an array (sized to that count)
  * of file path strings. It outputs the filename of each before running
  * read_one_file on them.
  *
- * Well, actually, it ignores the first argument. Since these are just
- * from int main, and the first argument's just gonna be something like
- * `./chexdump` or whatever, who cares.
  */
 int read_multiple_files (int      argc,
                          char*    argv[ ],
@@ -107,11 +111,14 @@ int main (int argc, char* argv[ ])
   arg_count = argc - optind;
 
   if (arg_count < 1)
+    /* We have no arguments. Read from stdin. */
     return read_file_obj(stdin, length, offset);
 
   if (arg_count > 1)
+    /* We have more than one argument. Read multiple files. */
     return read_multiple_files(argc, argv, optind, length, offset);
 
+  /* Otherwise, we have exactly one argument. Read that one file. */
   return read_one_file(argv[optind], length, offset);
 }
 
@@ -132,7 +139,7 @@ int read_file_obj (FILE*    the_file,
   /* One byte per, uh, byte. */
   bytesize    = 1;
 
-  /* So far, we have read zero (0) bytes. */
+  /* We'll start at the offset. */
   bytes_read  = offset;
 
   if (offset != 0)
@@ -173,6 +180,7 @@ int read_file_obj (FILE*    the_file,
 
   if (length == 0)
   {
+    /* If there's no length, we can just read to the end. */
     while (!feof(the_file))
     {
 #define READ_FULL_LINE(LENGTH)                                      \
@@ -192,8 +200,17 @@ int read_file_obj (FILE*    the_file,
 
   else
   {
+    /* Otherwise, we were given a length. Add the offset to get a
+     * stopping point.
+     */
     length += offset;
+
+    /* Repurpose the offset to point to the value bytes_read will be
+     * when it's time to read our last line.
+     */
     offset = (length / BYTES_PER_LINE) * BYTES_PER_LINE;
+
+    /* Last, we'll set our length to the length of the final line. */
     length -= offset;
 
     while (bytes_read < offset && !feof(the_file))
@@ -206,7 +223,12 @@ int read_file_obj (FILE*    the_file,
 
     if (length > 0 && !feof(the_file))
     {
+      /* This is the last line. Instead of reading as much as possible,
+       * read only up to our length max.
+       */
       READ_FULL_LINE(length);
+
+      /* (cleaning up) */
 #undef READ_FULL_LINE
     }
   }
