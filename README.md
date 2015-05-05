@@ -3,6 +3,11 @@ Color Hexdump
 
 I got tired of hexdump being not in color. Now it's in color.
 
+Installation
+------------
+
+Check out [the install documentation][install].
+
 Screen shot?
 ------------
 
@@ -84,4 +89,5 @@ To do
 3.  If I can come up with a reason for `~/.config/chexdump` to exist, I
     guess I'll make that happen.
 
-[pdfa]: doc/pdfa.png
+[pdfa]:     doc/pdfa.png
+[install]:  INSTALL.md
