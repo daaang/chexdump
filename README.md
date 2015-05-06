@@ -57,6 +57,9 @@ output from `hexdump -C` for the same bytes looks like this:
     000003a0  2f 52 65 73 6f 75 72 63  65 73 3c 3c 2f 43 6f 6c  |/Resources<</Col|
     000003b0  6f 72 53 70 61 63 65 3c  3c 2f 44 65 66 61 75 6c  |orSpace<</Defaul|
 
+You can also set skip (-s) and length (-n) just like in regular hexdump
+if you want just pieces of files.
+
 more -f
 -------
 
@@ -78,15 +81,10 @@ comments. Take a look; you can probably figure it out if you need to.
 To do
 -----
 
-1.  It'd be cool if it could take command line arguments to like,
-    display only a given byte range of a file, or something. Maybe I'll
-    do that next. Probably try and imitate hexdump's `-n` and `-s`
-    options.
-
-2.  I guess I could make it possible for you to configure your own
+1.  I guess I could make it possible for you to configure your own
     colors if you don't like my totally awesome choices for some reason.
 
-3.  If I can come up with a reason for `~/.config/chexdump` to exist, I
+2.  If I can come up with a reason for `~/.config/chexdump` to exist, I
     guess I'll make that happen.
 
 [pdfa]:     doc/pdfa.png
