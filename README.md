@@ -81,11 +81,15 @@ comments. Take a look; you can probably figure it out if you need to.
 To do
 -----
 
-1.  I guess I could make it possible for you to configure your own
+1.  Improve error handling; segfaulting just because a user gave a
+    nonnumeric argument to `-n` or `-s` is unacceptable.
+
+2.  I guess I could make it possible for you to configure your own
     colors if you don't like my totally awesome choices for some reason.
 
-2.  If I can come up with a reason for `~/.config/chexdump` to exist, I
-    guess I'll make that happen.
+3.  If I can come up with a reason for `~/.config/chexdump` to exist, I
+    guess I'll make that happen. Maybe that's how that configuration
+    could work.
 
 [pdfa]:     doc/pdfa.png
 [install]:  INSTALL.md
