@@ -1,4 +1,4 @@
-PROGRAM = chexdump
+PROGRAM	= chexdump
 VERSION	= 1.0.0
 FILES	= src/main.c src/hexprint.c
 OBJS	= $(FILES:.c=.o)
