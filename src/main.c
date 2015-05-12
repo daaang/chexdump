@@ -3,12 +3,46 @@
 #include <unistd.h>
 #include "hexprint.h"
 
+/* This is the help text. It can be used in printf or fprintf. This does
+ * count on the presence of argv wherever this is used.
+ */
 #define USAGE_TEXT \
   "Usage: %s [-n length] [-s skip] [file ...]\n", argv[0]
 
+/* These can be returned by the argument parser to tell the main program
+ * not to actually do anything.
+ */
+#define HALT_BUT_RETURN_ZERO  -1
+#define HALT_AND_RETURN_ONE   -2
+
 /* These are allocated in unistd. */
 extern char *optarg;
-extern int optind;
+extern int  optind;
+
+/**
+ * Parse arguments
+ *
+ * argc   - total argument count
+ * argv   - full array of arguments
+ * length - reference for desired length
+ * offset - reference for desired offset
+ *
+ * Reads each argument looking for options. Sets parameters accordingly
+ * and reorders the arguments such that the real ones are at the end of
+ * argv.
+ *
+ * Returns a count of remaining arguments and sets optind to the index
+ * of the first nonoption argument in argv.
+ *
+ * Negative return values are error codes:
+ *
+ * - HALT_BUT_RETURN_ZERO
+ * - HALT_AND_RETURN_ONE
+ */
+int parse_args (int       argc,
+                char*     argv[ ],
+                long int* length,
+                long int* offset);
 
 /**
  * Read file object
@@ -60,31 +94,73 @@ int read_multiple_files (int      argc,
 
 int main (int argc, char* argv[ ])
 {
-  int       option, arg_count;
+  int       arg_count;
   long int  length, offset;
 
-  /* By default, our offset and length are set to zero. For the offset,
-   * this sets us at the start of the file. For the length, this is a
-   * meaningless value that I'll take to mean infinity instead.
+
+  /* Now that we're done with getopt, we can get the count of nonoption
+   * arguments.
    */
-  offset = 0;
-  length = 0;
+  arg_count = parse_args(argc, argv, &length, &offset);
+
+  switch(arg_count)
+  {
+    case HALT_BUT_RETURN_ZERO:
+      /* The user must have asked for help or something. We're exiting
+       * before doing anything, but we're exiting clean.
+       */
+      return 0;
+
+    case HALT_AND_RETURN_ONE:
+      /* Something went wrong. */
+      return 1;
+
+    case 0:
+      /* We've been given no arguments; read from stdin. */
+      return read_file_obj(stdin, length, offset);
+
+    case 1:
+      /* We've been given one argument; read that file. */
+      return read_one_file(argv[optind], length, offset);
+
+    default:
+      /* We've been given multiple arguments; read each file. */
+      return read_multiple_files(argc, argv, optind, length, offset);
+  }
+}
+
+int parse_args (int       argc,
+                char*     argv[ ],
+                long int* length,
+                long int* offset)
+{
+  int option;
+
+  /* Default these two to zero. Since a length of zero would be
+   * nonsensical, we use it to mean "keep reading until EOF." An offset
+   * of zero simply points us at the beginning of the file.
+   */
+  *length = 0;
+  *offset = 0;
 
   while ((option = getopt(argc, argv, "hn:s:")) != -1)
   {
+    /* We've run getopt, and it's recorded an option. What happens next
+     * depends on what that option is.
+     */
     switch (option)
     {
       case 'h':
         /* Print help text and exit */
         printf(USAGE_TEXT);
-        return 0;
+        return HALT_BUT_RETURN_ZERO;
 
         /* This is for any options that just get loaded right into
          * integer variables. Never write anything twice!
          */
-#define OPT_ATOI(CHAR, VAR) \
-      case CHAR:            \
-        VAR = atoi(optarg); \
+#define OPT_ATOI(CHAR, VAR)   \
+      case CHAR:              \
+        *VAR = atoi(optarg);  \
         break
 
         /* These options are just integers. */
@@ -95,31 +171,15 @@ int main (int argc, char* argv[ ])
 #undef OPT_ATOI
 
       default:
-        /* Print an error. */
-        fprintf(stderr, "%s: invalid option -- '%c'\n",
-                argv[0], option);
-
         /* Print the usage text and error out. */
         fprintf(stderr, USAGE_TEXT);
-        return 1;
+        return HALT_AND_RETURN_ONE;
     }
   }
 
-  /* Now that we're done with getopt, we can get the count of nonoption
-   * arguments.
-   */
-  arg_count = argc - optind;
-
-  if (arg_count < 1)
-    /* We have no arguments. Read from stdin. */
-    return read_file_obj(stdin, length, offset);
-
-  if (arg_count > 1)
-    /* We have more than one argument. Read multiple files. */
-    return read_multiple_files(argc, argv, optind, length, offset);
-
-  /* Otherwise, we have exactly one argument. Read that one file. */
-  return read_one_file(argv[optind], length, offset);
+  /* Be sure we don't return any negative numbers. */
+  if (optind > argc)  return 0;
+  else                return argc - optind;
 }
 
 int read_file_obj (FILE*    the_file,
@@ -293,3 +353,5 @@ int read_multiple_files (int      argc,
 
 /* Cleaning up after myself is all. */
 #undef USAGE_TEXT
+#undef HALT_BUT_RETURN_ZERO
+#undef HALT_AND_RETURN_ONE
