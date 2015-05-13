@@ -6,7 +6,7 @@ I got tired of hexdump being not in color. Now it's in color.
 Installation
 ------------
 
-Check out [the install documentation][install].
+Check out [the install documentation](INSTALL.md).
 
 Screen shot?
 ------------
@@ -92,4 +92,3 @@ To do
     could work.
 
 [pdfa]:     doc/pdfa.png
-[install]:  INSTALL.md
