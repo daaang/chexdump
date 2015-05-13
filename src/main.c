@@ -1,13 +1,14 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
+#include <config.h>
 #include "hexprint.h"
 
 /* This is the help text. It can be used in printf or fprintf. This does
  * count on the presence of argv wherever this is used.
  */
 #define USAGE_TEXT \
-  "Usage: %s [-n length] [-s skip] [file ...]\n", argv[0]
+  "Usage: %s [-h | -v] [-n length] [-s skip] [file ...]\n", argv[0]
 
 /* These can be returned by the argument parser to tell the main program
  * not to actually do anything.
@@ -143,7 +144,7 @@ int parse_args (int       argc,
   *length = 0;
   *offset = 0;
 
-  while ((option = getopt(argc, argv, "hn:s:")) != -1)
+  while ((option = getopt(argc, argv, "hvn:s:")) != -1)
   {
     /* We've run getopt, and it's recorded an option. What happens next
      * depends on what that option is.
@@ -151,8 +152,13 @@ int parse_args (int       argc,
     switch (option)
     {
       case 'h':
-        /* Print help text and exit */
+        /* Print help text and exit. */
         printf(USAGE_TEXT);
+        return HALT_BUT_RETURN_ZERO;
+
+      case 'v':
+        /* Print the package string and exit. */
+        printf("%s\n", PACKAGE_STRING);
         return HALT_BUT_RETURN_ZERO;
 
         /* This is for any options that just get loaded right into
