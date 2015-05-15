@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <string.h>
 #include <unistd.h>
-#include <config.h>
+#include <localconf.h>
 #include "hexprint.h"
 
 /* This is the help text. It can be used in printf or fprintf. This does
