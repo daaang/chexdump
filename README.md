@@ -3,10 +3,17 @@ Color Hexdump
 
 I got tired of hexdump being not in color. Now it's in color.
 
-Installation
-------------
+Other docs
+----------
 
-Check out [the install documentation](INSTALL.md).
+-   [INSTALL][install]
+-   [NEWS][news]
+
+Less helpful, but here for the sake of being here:
+
+-   [AUTHORS][authors]
+-   [COPYRIGHT][copyright]
+-   [LICENSE][license]
 
 Screen shot?
 ------------
@@ -91,4 +98,9 @@ To do
     guess I'll make that happen. Maybe that's how that configuration
     could work.
 
-[pdfa]:     doc/pdfa.png
+[authors]:    AUTHORS.md
+[copyright]:  COPYRIGHT.md
+[install]:    INSTALL.md
+[license]:    LICENSE.txt
+[news]:       NEWS.md
+[pdfa]:       doc/pdfa.png
