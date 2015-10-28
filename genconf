@@ -1,30 +1,55 @@
 #!/usr/bin/env bash
+# Mostly just putting these at the top.
 PROGNAME="chexdump"
 PROGVERSION="1.2.2"
 
-AC_FILES=()
-#AC_FILES=("autom4te.cache")
+# I definitely want to get rid of autom4te.cache as well as the other
+# autoconf files.
+AC_FILES=("autom4te.cache")
+
+# Logging.
+echogood() { echo "[1;32m *[0m $@"; }
+echowarn() { echo "[1;33m *[0m $@"; }
+echobad()  { echo "[1;31m *[0m $@"; }
 
 mkacfile() {
+  echogood "Creating ${1} ..."
+
+  # This function expects file contents passed as heredocs through
+  # stdin. That input will be used up by cat here and output to the
+  # filename given as a first argument.
   cat > "$1"
+
+  # We'll want to delete this file later, so we add it to our array.
   AC_FILES=("${AC_FILES[@]}" "$1")
 }
 
+if [ "$1" != "I know what I'm doing" ]; then
+  # I don't want anybody accidentally running this just to see what it
+  # does, so I added this easily-found required argument.
+  echobad "You probably shouldn't run scripts without looking to see"
+  echobad "what they do first."
+  exit 1
+fi
+
+# The main makefile only has the one subdir.
 mkacfile "Makefile.am" <<- EOF
 	SUBDIRS	= src
 EOF
 
+# The source makefile only needs to make a single binary.
 mkacfile "src/Makefile.am" <<- EOF
 	bin_PROGRAMS		= ${PROGNAME}
 	${PROGNAME}_SOURCES	= main.c hexprint.c
 EOF
 
+# Here's the complicated part.
 mkacfile "configure.ac" <<- EOF
 	# I made this with 2.69 in mind.
 	AC_PREREQ([2.69])
 
 	# Package string.
-	AC_INIT([chexdump], [1.2.1])
+	AC_INIT([${PROGNAME}], [${PROGVERSION}])
 
 	# Foreign gets rid of annoying README etc. requirements. They're
 	# annoying because I already have README.md; I'm not adding one
@@ -57,5 +82,43 @@ mkacfile "configure.ac" <<- EOF
 	AC_OUTPUT
 EOF
 
-head "${AC_FILES[@]}"
-rm "${AC_FILES[@]}"
+########################################################################
+############################ Autoconf calls ############################
+########################################################################
+
+echogood "Generating aclocal.m4 ..."
+if ! aclocal; then
+  echobad "Couldn't make aclocal.m4 file."
+  exit 1
+fi
+
+echogood "Generating localconf.h.in ..."
+if ! autoheader; then
+  echobad "Couldn't make localconf.h.in file."
+  exit 1
+fi
+
+# This not only creates Makefile.in files but also copies the four
+# required scripts (compile, depcomp, install-sh, and missing) in their
+# entirety. The `-c` flag installs complete copies rather than symlinks
+# to make this stand better on its own.
+echogood "Generating Makefile.in files and required scripts ..."
+if ! automake -ac; then
+  echobad "Couldn't make Makefile.in files."
+  exit 1
+fi
+
+echogood "Generating ./configure ..."
+if ! autoconf; then
+  echobad "Couldn't make ./configure file."
+  exit 1
+fi
+
+# Finally, get rid of the files the user definitely will not need.
+echogood "Removing temporary autoconf files ..."
+if ! rm -r "${AC_FILES[@]}"; then
+  echobad "Couldn't remove temporary files."
+  exit 1
+fi
+
+echogood "Prepped and ready: ${PROGNAME} $PROGVERSION"
